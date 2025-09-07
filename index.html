@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Attendance Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        h1 {
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.3);
+        }
+
+        .btn.secondary:hover {
+            box-shadow: 0 8px 25px rgba(113, 128, 150, 0.4);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #fc8181, #e53e3e);
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn.danger:hover {
+            box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
+        }
+
+        input[type="date"],
+        input[type="text"],
+        select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            margin: 8px;
+            font-size: 1rem;
+            width: calc(100% - 16px);
+            max-width: 300px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="date"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .student-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .student-item:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .student-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .student-item label {
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background-color: #f7fafc;
+        }
+
+        .present {
+            color: #38a169;
+            font-weight: 600;
+        }
+
+        .absent {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .action-buttons {
+            margin: 20px 0;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #38a169;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Attendance Tracker</h1>
+        
+        <!-- Action Selection Screen -->
+        <div id="action-selection">
+            <h2>What would you like to do?</h2>
+            <div class="action-buttons">
+                <button class="btn" onclick="chooseAction('mark')">📝 Mark Attendance</button>
+                <button class="btn" onclick="chooseAction('view')">📊 View Attendance</button>
+                <button class="btn secondary" onclick="chooseAction('stats')">📈 Statistics</button>
+            </div>
+        </div>
+        
+        <!-- Subject Selection Screen -->
+        <div id="subject-selection" class="hidden">
+            <h2>Select Subject</h2>
+            <div class="action-buttons">
+                <button class="btn" onclick="selectSubject('Web Development')">🌐 Web Development</button>
+                <button class="btn" onclick="selectSubject('Artificial Intelligence')">🤖 Artificial Intelligence</button>
+                <button class="btn" onclick="selectSubject('Machine Learning')">🧠 Machine Learning</button>
+                <button class="btn" onclick="selectSubject('Data Science')">📊 Data Science</button>
+            </div>
+            <button class="btn secondary" onclick="goBackToAction()">← Back</button>
+        </div>
+        
+        <!-- Component Selection Screen -->
+        <div id="component-selection" class="hidden">
+            <h2>Select Component</h2>
+            <div class="action-buttons">
+                <button class="btn" onclick="selectComponent('Lecture')">🎓 Lecture</button>
+                <button class="btn" onclick="selectComponent('Practical')">💻 Practical</button>
+                <button class="btn" onclick="selectComponent('Tutorial')">📖 Tutorial</button>
+            </div>
+            <button class="btn secondary" onclick="goBackToSubject()">← Back</button>
+        </div>
+
+        <!-- Mark Attendance Form -->
+        <div id="attendance-form" class="hidden">
+            <h2>Mark Attendance</h2>
+            <div id="current-selection"></div>
+            <input type="date" id="attendance-date" required>
+            <div id="students-list" class="students-grid">
+                <!-- Student checkboxes will be generated here -->
+            </div>
+            <div class="action-buttons">
+                <button class="btn" onclick="saveAttendance()">💾 Save Attendance</button>
+                <button class="btn secondary" onclick="goBackToComponent()">← Back</button>
+            </div>
+            <div id="message-area"></div>
+        </div>
+
+        <!-- View Options Screen -->
+        <div id="view-options" class="hidden">
+            <h2>View Attendance</h2>
+            <div class="action-buttons">
+                <button class="btn" onclick="viewBy('student')">👤 By Student</button>
+                <button class="btn" onclick="viewBy('subject')">📚 By Subject & Component</button>
+                <button class="btn" onclick="viewBy('summary')">📋 Summary Report</button>
+            </div>
+            <button class="btn secondary" onclick="goBackToAction()">← Back</button>
+        </div>
+
+        <!-- View by Student -->
+        <div id="view-by-student" class="hidden">
+            <h2>View Attendance by Student</h2>
+            <select id="student-select">
+                <option value="">Select a student...</option>
+            </select>
+            <button class="btn" onclick="viewAttendanceByStudent()">📊 View Record</button>
+            <div id="student-attendance-container"></div>
+            <button class="btn secondary" onclick="goBackToViewOptions()">← Back</button>
+        </div>
+
+        <!-- View by Subject -->
+        <div id="view-by-subject" class="hidden">
+            <h2>View Attendance by Subject & Component</h2>
+            <div id="subject-attendance-container"></div>
+            <button class="btn secondary" onclick="goBackToViewOptions()">← Back</button>
+        </div>
+
+        <!-- Summary Report -->
+        <div id="summary-report" class="hidden">
+            <h2>Attendance Summary</h2>
+            <div id="summary-stats" class="stats-container"></div>
+            <div id="summary-table-container"></div>
+            <button class="btn secondary" onclick="goBackToViewOptions()">← Back</button>
+        </div>
+
+        <!-- Statistics View -->
+        <div id="statistics-view" class="hidden">
+            <h2>Attendance Statistics</h2>
+            <div id="stats-container"></div>
+            <button class="btn secondary" onclick="goBackToAction()">← Back</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedAction = '';
+        let selectedSubject = '';
+        let selectedComponent = '';
+
+        const students = [
+            { id: 1, name: "Alice Johnson" },
+            { id: 2, name: "Bob Smith" },
+            { id: 3, name: "Charlie Brown" },
+            { id: 4, name: "Diana Prince" },
+            { id: 5, name: "Ethan Hunt" },
+            { id: 6, name: "Fiona Gallagher" },
+            { id: 7, name: "George Washington" },
+            { id: 8, name: "Hannah Montana" },
+            { id: 9, name: "Ian Malcolm" },
+            { id: 10, name: "Julia Roberts" },
+            { id: 11, name: "Kevin Hart" },
+            { id: 12, name: "Luna Lovegood" },
+            { id: 13, name: "Mike Tyson" },
+            { id: 14, name: "Nina Simone" },
+            { id: 15, name: "Oscar Wilde" },
+            { id: 16, name: "Penelope Cruz" },
+            { id: 17, name: "Quentin Tarantino" },
+            { id: 18, name: "Ryan Reynolds" },
+            { id: 19, name: "Sophia Loren" },
+            { id: 20, name: "Tom Hanks" }
+        ];
+
+        function showMessage(message, type = 'success') {
+            const messageArea = document.getElementById('message-area');
+            messageArea.innerHTML = `<div class="${type}-message">${message}</div>`;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
+        }
+
+        function chooseAction(action) {
+            selectedAction = action;
+            hideAllScreens();
+            
+            if (action === 'stats') {
+                showStatistics();
+                return;
+            }
+            
+            document.getElementById('subject-selection').classList.remove('hidden');
+        }
+
+        function selectSubject(subject) {
+            selectedSubject = subject;
+            hideAllScreens();
+            document.getElementById('component-selection').classList.remove('hidden');
+        }
+
+        function selectComponent(component) {
+            selectedComponent = component;
+            hideAllScreens();
+
+            if (selectedAction === 'mark') {
+                document.getElementById('attendance-form').classList.remove('hidden');
+                updateCurrentSelection();
+                populateStudentsList();
+                setTodayDate();
+            } else if (selectedAction === 'view') {
+                document.getElementById('view-options').classList.remove('hidden');
+            }
+        }
+
+        function hideAllScreens() {
+            const screens = [
+                'action-selection', 'subject-selection', 'component-selection',
+                'attendance-form', 'view-options', 'view-by-student',
+                'view-by-subject', 'summary-report', 'statistics-view'
+            ];
+            screens.forEach(screen => {
+                document.getElementById(screen).classList.add('hidden');
+            });
+        }
+
+        function goBackToAction() {
+            hideAllScreens();
+            document.getElementById('action-selection').classList.remove('hidden');
+        }
+
+        function goBackToSubject() {
+            hideAllScreens();
+            document.getElementById('subject-selection').classList.remove('hidden');
+        }
+
+        function goBackToComponent() {
+            hideAllScreens();
+            document.getElementById('component-selection').classList.remove('hidden');
+        }
+
+        function goBackToViewOptions() {
+            hideAllScreens();
+            document.getElementById('view-options').classList.remove('hidden');
+        }
+
+        function updateCurrentSelection() {
+            const selectionDiv = document.getElementById('current-selection');
+            selectionDiv.innerHTML = `
+                <div style="background: #e6fffa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <strong>📚 Subject:</strong> ${selectedSubject}<br>
+                    <strong>📝 Component:</strong> ${selectedComponent}
+                </div>
+            `;
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('attendance-date').value = today;
+        }
+
+        function populateStudentsList() {
+            const studentsListDiv = document.getElementById('students-list');
+            studentsListDiv.innerHTML = '';
+            
+            students.forEach(student => {
+                const studentDiv = document.createElement('div');
+                studentDiv.className = 'student-item';
+                studentDiv.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="student-${student.id}" />
+                        <span>${student.name}</span>
+                    </label>
+                `;
+                studentsListDiv.appendChild(studentDiv);
+            });
+        }
+
+        function populateStudentSelect() {
+            const studentSelect = document.getElementById('student-select');
+            studentSelect.innerHTML = '<option value="">Select a student...</option>';
+            
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (ID: ${student.id})`;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        function saveAttendance() {
+            const date = document.getElementById('attendance-date').value;
+            if (!date) {
+                showMessage('Please select a date.', 'error');
+                return;
+            }
+            
+            const attendanceKey = `${selectedSubject}-${selectedComponent}`;
+            let attendanceRecords = JSON.parse(localStorage.getItem(attendanceKey)) || {};
+
+            students.forEach(student => {
+                const checkbox = document.getElementById(`student-${student.id}`);
+                if (!attendanceRecords[student.id]) {
+                    attendanceRecords[student.id] = {
+                        id: student.id,
+                        name: student.name,
+                        dates: {}
+                    };
+                }
+                attendanceRecords[student.id].dates[date] = checkbox.checked;
+            });
+
+            localStorage.setItem(attendanceKey, JSON.stringify(attendanceRecords));
+            showMessage('✅ Attendance saved successfully!');
+            
+            // Clear checkboxes
+            students.forEach(student => {
+                document.getElementById(`student-${student.id}`).checked = false;
+            });
+        }
+
+        function viewBy(option) {
+            hideAllScreens();
+            
+            if (option === 'student') {
+                populateStudentSelect();
+                document.getElementById('view-by-student').classList.remove('hidden');
+            } else if (option === 'subject') {
+                document.getElementById('view-by-subject').classList.remove('hidden');
+                displayAttendanceBySubject();
+            } else if (option === 'summary') {
+                document.getElementById('summary-report').classList.remove('hidden');
+                generateSummaryReport();
+            }
+        }
+
+        function viewAttendanceByStudent() {
+            const studentId = document.getElementById('student-select').value;
+            if (!studentId) {
+                showMessage('Please select a student.', 'error');
+                return;
+            }
+
+            const container = document.getElementById('student-attendance-container');
+            container.innerHTML = '';
+            
+            const student = students.find(s => s.id == studentId);
+            let hasRecords = false;
+            let totalClasses = 0;
+            let attendedClasses = 0;
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Component</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="student-table-body"></tbody>
+            `;
+
+            const tbody = table.querySelector('#student-table-body');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('-')) {
+                    const attendanceRecords = JSON.parse(localStorage.getItem(key));
+                    const [subject, component] = key.split('-');
+
+                    if (attendanceRecords[studentId]) {
+                        const studentRecord = attendanceRecords[studentId];
+                        Object.keys(studentRecord.dates).forEach(date => {
+                            hasRecords = true;
+                            totalClasses++;
+                            const isPresent = studentRecord.dates[date];
+                            if (isPresent) attendedClasses++;
+
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${subject}</td>
+                                <td>${component}</td>
+                                <td>${new Date(date).toLocaleDateString()}</td>
+                                <td class="${isPresent ? 'present' : 'absent'}">
+                                    ${isPresent ? '✅ Present' : '❌ Absent'}
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
+                }
+            }
+
+            if (hasRecords) {
+                const attendancePercentage = ((attendedClasses / totalClasses) * 100).toFixed(1);
+                container.innerHTML = `
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-number">${student.name}</div>
+                            <div class="stat-label">Student Record</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${attendedClasses}/${totalClasses}</div>
+                            <div class="stat-label">Classes Attended</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${attendancePercentage}%</div>
+                            <div class="stat-label">Attendance Rate</div>
+                        </div>
+                    </div>
+                    <div class="table-container"></div>
+                `;
+                container.querySelector('.table-container').appendChild(table);
+            } else {
+                container.innerHTML = '<p>No attendance records found for this student.</p>';
+            }
+        }
+
+        function displayAttendanceBySubject() {
+            const container = document.getElementById('subject-attendance-container');
+            container.innerHTML = '';
+
+            const attendanceKey = `${selectedSubject}-${selectedComponent}`;
+            const attendanceRecords = JSON.parse(localStorage.getItem(attendanceKey)) || {};
+            
+            if (Object.keys(attendanceRecords).length > 0) {
+                // Get all unique dates and sort them
+                let dates = new Set();
+                Object.values(attendanceRecords).forEach(record => {
+                    Object.keys(record.dates).forEach(date => dates.add(date));
+                });
+                dates = Array.from(dates).sort();
+
+                const table = document.createElement('table');
+                let headerRow = '<tr><th>ID</th><th>Student Name</th>';
+                dates.forEach(date => {
+                    headerRow += `<th>${new Date(date).toLocaleDateString()}</th>`;
+                });
+                headerRow += '<th>Attendance %</th></tr>';
+                
+                table.innerHTML = `<thead>${headerRow}</thead><tbody></tbody>`;
+                const tbody = table.querySelector('tbody');
+                
+                Object.values(attendanceRecords).forEach(record => {
+                    let row = `<tr><td>${record.id}</td><td>${record.name}</td>`;
+                    let attended = 0;
+                    let total = dates.length;
+                    
+                    dates.forEach(date => {
+                        const isPresent = record.dates[date];
+                        if (isPresent) attended++;
+                        row += `<td class="${isPresent ? 'present' : 'absent'}">
+                            ${isPresent ? '✅' : '❌'}
+                        </td>`;
+                    });
+                    
+                    const percentage = total > 0 ? ((attended / total) * 100).toFixed(1) : 0;
+                    row += `<td><strong>${percentage}%</strong></td></tr>`;
+                    tbody.innerHTML += row;
+                });
+                
+                container.innerHTML = `
+                    <div style="background: #e6fffa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <strong>📚 ${selectedSubject} - ${selectedComponent}</strong>
+                    </div>
+                    <div class="table-container"></div>
+                `;
+                container.querySelector('.table-container').appendChild(table);
+            } else {
+                container.innerHTML = '<p>No attendance records found for this subject and component.</p>';
+            }
+        }
+
+        function generateSummaryReport() {
+            const statsContainer = document.getElementById('summary-stats');
+            const tableContainer = document.getElementById('summary-table-container');
+            
+            let totalStudents = students.length;
+            let totalSubjects = new Set();
+            let overallAttendance = 0;
+            let totalRecords = 0;
+
+            const subjectStats = {};
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('-')) {
+                    const [subject, component] = key.split('-');
+                    totalSubjects.add(subject);
+                    
+                    if (!subjectStats[key]) {
+                        subjectStats[key] = { attended: 0, total: 0 };
+                    }
+
+                    const records = JSON.parse(localStorage.getItem(key));
+                    Object.values(records).forEach(record => {
+                        Object.values(record.dates).forEach(isPresent => {
+                            subjectStats[key].total++;
+                            totalRecords++;
+                            if (isPresent) {
+                                subjectStats[key].attended++;
+                                overallAttendance++;
+                            }
+                        });
+                    });
+                }
+            }
+
+            const overallPercentage = totalRecords > 0 ? ((overallAttendance / totalRecords) * 100).toFixed(1) : 0;
+
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalStudents}</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalSubjects.size}</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalRecords}</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${overallPercentage}%</div>
+                    <div class="stat-label">Overall Attendance</div>
+                </div>
+            `;
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Subject - Component</th>
+                        <th>Total Classes</th>
+                        <th>Total Present</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+            Object.keys(subjectStats).forEach(key => {
+                const stats = subjectStats[key];
+                const percentage = stats.total > 0 ? ((stats.attended / stats.total) * 100).toFixed(1) : 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${key.replace('-', ' - ')}</td>
+                    <td>${stats.total}</td>
+                    <td>${stats.attended}</td>
+                    <td><strong>${percentage}%</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            tableContainer.innerHTML = '<div class="table-container"></div>';
+            tableContainer.querySelector('.table-container').appendChild(table);
+        }
+
+        function showStatistics() {
+            hideAllScreens();
+            document.getElementById('statistics-view').classList.remove('hidden');
+            
+            const container = document.getElementById('stats-container');
+            generateSummaryReport();
+            
+            container.innerHTML = `
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number">${students.length}</div>
+                        <div class="stat-label">Registered Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${localStorage.length}</div>
+                        <div class="stat-label">Subject Records</div>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; color: #4a5568;">
+                    📊 Complete attendance statistics are available in the Summary Report section.
+                </p>
+            `;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Attendance Tracker initialized with', students.length, 'students');
+        });
+    </script>
+</body>
+</html>
